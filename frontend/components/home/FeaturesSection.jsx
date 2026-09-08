@@ -47,26 +47,46 @@ function TimelineDot({ scrollYProgress, index, total, color }) {
   );
 }
 
-function TrackTrainIcon() {
+function TrackTrainIcon({ direction }) {
   return (
     <svg aria-hidden="true" viewBox="0 0 34 112" className="h-[104px] w-8 overflow-visible">
       <path
-        d="M17 2C9 2 5 8 5 16v76c0 10 5 17 12 18 7-1 12-8 12-18V16C29 8 25 2 17 2Z"
+        d="M17 2C9 3 5 9 5 18v76c0 9 4 15 12 16 8-1 12-7 12-16V18C29 9 25 3 17 2Z"
         fill="#041115"
         stroke="#a5f3fc"
         strokeWidth="1.25"
       />
-      <path d="M6 38h22M6 68h22" stroke="#22d3ee" strokeOpacity=".55" />
-      <rect x="9" y="10" width="16" height="20" rx="6" fill="#0b2931" stroke="#67e8f9" strokeOpacity=".65" />
-      <rect x="9" y="42" width="16" height="20" rx="5" fill="#082129" stroke="#67e8f9" strokeOpacity=".48" />
-      <rect x="9" y="72" width="16" height="20" rx="5" fill="#082129" stroke="#67e8f9" strokeOpacity=".48" />
-      <circle cx="14" cy="49" r="2" fill="#cffafe" />
-      <circle cx="20" cy="49" r="2" fill="#cffafe" />
-      <circle cx="14" cy="79" r="2" fill="#cffafe" />
-      <circle cx="20" cy="79" r="2" fill="#cffafe" />
-      <path d="M9 96c2.5 7 13.5 7 16 0v5c-3 8-13 8-16 0Z" fill="#cffafe" />
-      <path d="M12 16h10v8H12z" fill="#67e8f9" fillOpacity=".35" />
-      <circle cx="17" cy="106" r="1.8" fill="#fff" className="drop-shadow-[0_0_5px_#22d3ee]" />
+      <path d="M6 38h22M6 74h22" stroke="#22d3ee" strokeOpacity=".55" />
+
+      {/* A driving cab at both ends means the train never needs to flip. */}
+      <rect x="9" y="10" width="16" height="21" rx="6" fill="#0b2931" stroke="#67e8f9" strokeOpacity=".65" />
+      <rect x="9" y="81" width="16" height="21" rx="6" fill="#0b2931" stroke="#67e8f9" strokeOpacity=".65" />
+      <path d="M12 16h10v8H12zM12 88h10v8H12z" fill="#67e8f9" fillOpacity=".35" />
+
+      {/* Shared passenger compartment. */}
+      <rect x="9" y="45" width="16" height="22" rx="5" fill="#082129" stroke="#67e8f9" strokeOpacity=".48" />
+      <circle cx="14" cy="52" r="2" fill="#cffafe" />
+      <circle cx="20" cy="52" r="2" fill="#cffafe" />
+
+      {/* Symmetrical noses; only the leading headlight shines at full power. */}
+      <path d="M9 13C11.5 6 22.5 6 25 13V9C22 2 12 2 9 9Z" fill="#cffafe" fillOpacity=".9" />
+      <path d="M9 99c2.5 7 13.5 7 16 0v4c-3 7-13 7-16 0Z" fill="#cffafe" fillOpacity=".9" />
+      <circle
+        cx="17"
+        cy="5"
+        r="1.9"
+        fill="#fff"
+        opacity={direction === "up" ? 1 : 0.35}
+        className={direction === "up" ? "drop-shadow-[0_0_6px_#22d3ee]" : ""}
+      />
+      <circle
+        cx="17"
+        cy="107"
+        r="1.9"
+        fill="#fff"
+        opacity={direction === "down" ? 1 : 0.35}
+        className={direction === "down" ? "drop-shadow-[0_0_6px_#22d3ee]" : ""}
+      />
     </svg>
   );
 }
@@ -279,14 +299,9 @@ export default function FeaturesSection() {
               style={{ top: trainY }}
             >
               <span className="absolute bottom-2 h-12 w-12 animate-pulse rounded-full bg-cyan-400/15 blur-lg" />
-              <motion.span
-                className="absolute bottom-0 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
-                animate={{ rotate: trainDirection === "down" ? 0 : 180 }}
-                transition={{ type: "spring", stiffness: 320, damping: 28 }}
-                style={{ transformOrigin: "50% 100%" }}
-              >
-                <TrackTrainIcon />
-              </motion.span>
+              <span className="absolute bottom-0 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">
+                <TrackTrainIcon direction={trainDirection} />
+              </span>
             </motion.div>
 
           </div>

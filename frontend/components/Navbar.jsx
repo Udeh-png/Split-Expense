@@ -192,7 +192,7 @@ export default function Navbar() {
               })}
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 sm:gap-3">
+            <div className="flex items-center gap-0.5 sm:gap-3">
               <Link
                 href="/what-we-offer"
                 className="hidden sm:block px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold text-white/70 hover:text-white transition-all hover:bg-white/5"
@@ -201,7 +201,7 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/pricing"
-                className="px-2 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold text-white/70 hover:text-white transition-all hover:bg-white/5"
+                className="px-1.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold text-white/70 hover:text-white transition-all hover:bg-white/5"
               >
                 Pricing
               </Link>
@@ -213,13 +213,13 @@ export default function Navbar() {
               </Link>
               <Link
                 href="/login"
-                className="px-2 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold text-white/70 hover:text-white transition-all hover:bg-white/5"
+                className="px-1.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold text-white/70 hover:text-white transition-all hover:bg-white/5"
               >
                 Login
               </Link>
               <Link
                 href="/register"
-                className="px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold text-white bg-white/5 hover:bg-white/10 border border-white/20 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                className="px-2.5 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold text-white bg-white/5 hover:bg-white/10 border border-white/20 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
               >
                 Get started
               </Link>

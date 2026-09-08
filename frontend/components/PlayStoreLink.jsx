@@ -34,14 +34,14 @@ export function PlayStoreButton({ className = "" }) {
 // in the navbar so visitors on desktop know there's an Android app too.
 // The colorful mark sits in a small dark chip so it reads as a proper app
 // icon against the navbar instead of a bare, flat-looking triangle.
-export function PlayStoreNavLink({ className = "" }) {
+export function PlayStoreNavLink({ className = "inline-flex" }) {
   return (
     <a
       href={PLAY_STORE_URL}
       target="_blank"
       rel="noopener noreferrer"
       title="Get SplitEase on Google Play"
-      className={`group inline-flex items-center gap-2 pl-1 pr-3 sm:pr-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold text-white/70 hover:text-white transition-all hover:bg-white/5 ${className}`}
+      className={`group items-center gap-2 pl-1 pr-3 sm:pr-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-bold text-white/70 hover:text-white transition-all hover:bg-white/5 ${className}`}
     >
       <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15 transition-colors group-hover:bg-white/15 group-hover:ring-white/25">
         <GooglePlayIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

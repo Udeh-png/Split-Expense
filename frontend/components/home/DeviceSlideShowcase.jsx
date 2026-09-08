@@ -1,257 +1,287 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import { motion, useScroll, AnimatePresence } from "framer-motion";
-import { Laptop, Tablet, Smartphone, Sparkles, CheckCircle2, ChevronRight } from "lucide-react";
+import { useRef, useState } from "react";
+import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { CheckCircle2, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+
+const SLIDES = [
+  {
+    id: "laptop",
+    tag: "DESKTOP WEBAPP",
+    title: "Widescreen Command Center",
+    shortTitle: "Desktop command",
+    desc: "Manage your group trips, calculate complex split percentages, and track overall spending profiles on a unified desktop interface built for power users.",
+    imageSrc: "/laptop.webp",
+    lineColor: "#22d3ee",
+    glowColor: "rgba(34, 211, 238, 0.16)",
+    features: ["Full screen overview of split ledgers", "Detailed graphical expense analytics", "Multi-group dashboard view"],
+  },
+  {
+    id: "tablet",
+    tag: "TABLET EXPERIENCE",
+    title: "Lounge & Audit Comfort",
+    shortTitle: "Tablet review",
+    desc: "Review room audits and examine receipt details on a highly responsive tablet canvas. Settle balances from a couch, a hammock, or anywhere you unwind.",
+    imageSrc: "/tablet.webp",
+    lineColor: "#34d399",
+    glowColor: "rgba(52, 211, 153, 0.16)",
+    features: ["Interactive room balance visualizers", "Pinch-to-zoom scanned receipt viewer", "Quick swipe navigation between screens"],
+  },
+  {
+    id: "mobile",
+    tag: "MOBILE COMPANION",
+    title: "Split on the Go",
+    shortTitle: "Mobile companion",
+    desc: "Log cost splits in seconds from the taxi, ticket line, or restaurant. Attach a receipt photo and confirm settlements directly from your phone.",
+    imageSrc: "/mobile.webp",
+    lineColor: "#f472b6",
+    glowColor: "rgba(244, 114, 182, 0.16)",
+    features: ["Attach receipt photos to any expense", "QR & link invites to join instantly", "Two-party settlements confirmed in-app"],
+  },
+];
+
+// Static masks plus transform/opacity animation make the fracture deterministic
+// and allow the exact same pieces to reconnect when the user scrolls upward.
+const SHARDS = [
+  { clip: "polygon(0 0, 31% 0, 27% 34%, 0 39%)", x: -108, y: -72, r: -12 },
+  { clip: "polygon(30% 0, 62% 0, 58% 31%, 27% 34%)", x: -22, y: -104, r: 8 },
+  { clip: "polygon(61% 0, 100% 0, 100% 35%, 58% 31%)", x: 112, y: -76, r: 13 },
+  { clip: "polygon(0 38%, 27% 33%, 33% 65%, 0 70%)", x: -136, y: -6, r: -17 },
+  { clip: "polygon(27% 33%, 58% 30%, 63% 62%, 33% 65%)", x: -38, y: 18, r: 10 },
+  { clip: "polygon(58% 30%, 100% 34%, 100% 64%, 63% 62%)", x: 138, y: -8, r: 17 },
+  { clip: "polygon(0 69%, 33% 64%, 29% 100%, 0 100%)", x: -116, y: 82, r: 14 },
+  { clip: "polygon(33% 64%, 63% 61%, 68% 100%, 29% 100%)", x: 16, y: 108, r: -9 },
+  { clip: "polygon(63% 61%, 100% 63%, 100% 100%, 68% 100%)", x: 124, y: 80, r: -15 },
+];
+
+function DeviceArtwork({ slide, decorative = false }) {
+  return (
+    <div className="flex h-full w-full items-center justify-center">
+      <Image
+        src={slide.imageSrc}
+        alt={decorative ? "" : `${slide.title} device preview`}
+        width={1672}
+        height={941}
+        sizes="(max-width: 1024px) 100vw, 58vw"
+        loading="lazy"
+        decoding="async"
+        className="block h-auto w-[118%] max-w-[900px] object-contain [filter:brightness(1.04)_contrast(1.08)_saturate(1.1)]"
+        draggable={false}
+      />
+    </div>
+  );
+}
+
+function ArrivalCard({ slide, progress, index, reduceMotion }) {
+  const starts = [0.01, 0.035, 0.06];
+  const settledY = [-24, 8, 40][index];
+  const convergeX = [310, 0, -310][index];
+  const rotateEnd = [-4, 1, 5][index];
+  const y = useTransform(progress, [starts[index], starts[index] + 0.085, 0.205, 0.285], reduceMotion ? [0, 0, 0, 0] : [-560, settledY, settledY, 92]);
+  const x = useTransform(progress, [0.17, 0.255], reduceMotion ? [0, 0] : [0, convergeX]);
+  const rotate = useTransform(progress, [starts[index], starts[index] + 0.085, 0.255], reduceMotion ? [0, 0, 0] : [rotateEnd * 2, rotateEnd, 0]);
+  const scale = useTransform(progress, [0.18, 0.275], [1, 0.78]);
+  const opacity = useTransform(progress, [starts[index], starts[index] + 0.025, 0.255, 0.305], [0, 1, 1, 0]);
+
+  return (
+    <motion.article
+      style={{ x, y, rotate, scale, opacity }}
+      className="relative min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#090b0d]/90 p-3 shadow-[0_28px_80px_rgba(0,0,0,0.75)] backdrop-blur-xl will-change-transform"
+    >
+      <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-black/80">
+        <Image
+          src={slide.imageSrc}
+          alt=""
+          width={1672}
+          height={941}
+          sizes="(max-width: 640px) 100vw, 33vw"
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-contain"
+          draggable={false}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
+      </div>
+      <div className="mt-3 flex items-center gap-3 px-1 pb-1">
+        <span className="font-serif-premium text-lg text-white/30">0{index + 1}</span>
+        <span className="h-px w-6 bg-white/15" />
+        <p className="text-xs font-medium text-white/80">{slide.shortTitle}</p>
+      </div>
+    </motion.article>
+  );
+}
+
+function SlideComposition({ slide, index, decorative = false, active = false }) {
+  return (
+    <div className="grid h-full w-full grid-cols-1 items-center gap-5 py-10 sm:gap-8 lg:grid-cols-12 lg:gap-16 lg:py-0">
+      <div className="flex flex-col justify-center lg:col-span-5">
+        <div className="mb-6 flex items-center gap-3 text-[11px] tracking-[0.12em] text-white/45">
+          <span className="font-serif-premium text-base tracking-normal text-white/70">0{index + 1}</span>
+          <span className="h-px w-8 bg-white/20" />
+          <span className="uppercase">{slide.tag}</span>
+        </div>
+        <h3 className="font-serif-premium text-3xl font-normal leading-[1.06] tracking-tight text-white sm:text-4xl md:text-5xl lg:text-[3.35rem]">
+          {slide.title}
+        </h3>
+        <p className="mt-6 max-w-md text-sm font-normal leading-7 text-white/48 sm:text-base">
+          {slide.desc}
+        </p>
+        <ul className="mt-7 space-y-3">
+          {slide.features.map((feature) => (
+            <li key={feature} className="flex items-center gap-3 text-sm text-white/68">
+              <CheckCircle2 className="h-[18px] w-[18px] shrink-0" style={{ color: slide.lineColor }} strokeWidth={1.8} />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+        <div className={`mt-8 ${active ? "pointer-events-auto" : "pointer-events-none"}`}>
+          {decorative ? (
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-5 py-2.5 text-sm font-semibold text-white/80">
+              View Live Demo
+              <ChevronRight className="h-3.5 w-3.5" />
+            </span>
+          ) : (
+            <Link
+              href={`/demo/${slide.id}`}
+              tabIndex={active ? 0 : -1}
+              aria-label={`View the ${slide.title} live demo`}
+              className="relative z-30 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:border-white/25 hover:bg-white/[0.08]"
+            >
+              View Live Demo
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          )}
+        </div>
+      </div>
+
+      <div className="relative h-[245px] min-h-0 sm:h-[370px] lg:col-span-7 lg:h-[540px]">
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[110px]"
+          style={{ backgroundColor: slide.glowColor }}
+        />
+        <DeviceArtwork slide={slide} decorative={decorative} />
+      </div>
+    </div>
+  );
+}
+
+function SolidPage({ slide, index, progress, range, active }) {
+  const opacity = useTransform(progress, range, [0, 1, 1, range[3] === 1 ? 1 : 0]);
+  const scale = useTransform(progress, range, [0.975, 1, 1, range[3] === 1 ? 1 : 0.99]);
+
+  return (
+    <motion.article
+      aria-hidden={!active}
+      style={{ opacity, scale }}
+      className={`absolute inset-0 ${active ? "pointer-events-auto" : "pointer-events-none"}`}
+    >
+      <SlideComposition slide={slide} index={index} active={active} />
+    </motion.article>
+  );
+}
+
+function GlassShard({ slide, index, progress, start, end, shard }) {
+  const x = useTransform(progress, [start, end], [0, shard.x]);
+  const y = useTransform(progress, [start, end], [0, shard.y]);
+  const rotate = useTransform(progress, [start, end], [0, shard.r]);
+  const scale = useTransform(progress, [start, end], [1, 0.94]);
+  const opacity = useTransform(progress, [start, end - 0.018, end], [1, 0.82, 0]);
+
+  return (
+    <motion.div
+      aria-hidden="true"
+      style={{ x, y, rotate, scale, opacity, clipPath: shard.clip, WebkitClipPath: shard.clip }}
+      className="pointer-events-none absolute inset-0 select-none will-change-transform"
+    >
+      <SlideComposition slide={slide} index={index} decorative />
+    </motion.div>
+  );
+}
+
+function GlassTransition({ slide, index, progress, start, end, reduceMotion }) {
+  const opacity = useTransform(progress, [start - 0.008, start, end], [0, 1, 1]);
+  const fallbackOpacity = useTransform(progress, [start - 0.008, start, end], [0, 1, 0]);
+
+  return (
+    <>
+      <motion.div
+        aria-hidden="true"
+        style={{ opacity: fallbackOpacity }}
+        className={`pointer-events-none absolute inset-0 ${reduceMotion ? "block" : "lg:hidden"}`}
+      >
+        <SlideComposition slide={slide} index={index} decorative />
+      </motion.div>
+      {!reduceMotion && (
+        <motion.div aria-hidden="true" style={{ opacity }} className="pointer-events-none absolute inset-0 hidden [contain:paint] lg:block">
+          {SHARDS.map((shard) => (
+            <GlassShard key={shard.clip} slide={slide} index={index} progress={progress} start={start} end={end} shard={shard} />
+          ))}
+        </motion.div>
+      )}
+    </>
+  );
+}
 
 export default function DeviceSlideShowcase() {
   const containerRef = useRef(null);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [transitionIndex, setTransitionIndex] = useState(-1);
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start start", "end end"] });
+  // Never begin on an empty black frame. The introduction is already visible
+  // at the section boundary, while the falling cards provide the motion.
+  const introOpacity = useTransform(scrollYProgress, [0, 0.225, 0.3], [1, 1, 0]);
+  const mainOpacity = useTransform(scrollYProgress, [0.225, 0.28], [0, 1]);
 
-  // Hook scroll progress to our 300vh scroll-track container
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
+  // State is used only for semantics/focus management. Visual motion remains
+  // continuously scroll-linked, so reverse scrolling still rebuilds exactly.
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    const nextIndex = latest < 0.23 ? -1 : latest < 0.545 ? 0 : latest < 0.785 ? 1 : 2;
+    const nextTransition = latest >= 0.475 && latest <= 0.605 ? 0 : latest >= 0.715 && latest <= 0.845 ? 1 : -1;
+    setActiveIndex((current) => current === nextIndex ? current : nextIndex);
+    setTransitionIndex((current) => current === nextTransition ? current : nextTransition);
   });
 
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  useEffect(() => {
-    return scrollYProgress.onChange((latest) => {
-      if (latest < 0.33) {
-        setActiveIndex(0);
-      } else if (latest >= 0.33 && latest < 0.66) {
-        setActiveIndex(1);
-      } else {
-        setActiveIndex(2);
-      }
-    });
-  }, [scrollYProgress]);
-
-  const slides = [
-    {
-      id: "laptop",
-      tag: "DESKTOP WEBAPP",
-      title: "Widescreen Command Center",
-      desc: "Manage your group trips, calculate complex split percentages, and track overall spending profiles on a unified, gorgeous desktop interface built for power users.",
-      icon: Laptop,
-      imageSrc: "/laptop.webp",
-      color: "from-cyan-500 to-blue-500",
-      accent: "text-cyan-400",
-      accentBg: "bg-cyan-500/10",
-      glowColor: "rgba(45, 212, 191, 0.18)",
-      features: [
-        "Full screen overview of split ledgers",
-        "Detailed graphical expense analytics",
-        "Multi-group dashboard view"
-      ]
-    },
-    {
-      id: "tablet",
-      tag: "TABLET EXPERIENCE",
-      title: "Lounge & Audit Comfort",
-      desc: "Review room audits and examine receipt details on a highly responsive tablet canvas. Settle balances from a couch, a hammock, or anywhere you unwind.",
-      icon: Tablet,
-      imageSrc: "/tablet.webp",
-      color: "from-emerald-500 to-teal-500",
-      accent: "text-emerald-400",
-      accentBg: "bg-emerald-500/10",
-      glowColor: "rgba(45, 212, 191, 0.18)",
-      features: [
-        "Interactive room balance visualizers",
-        "Pinch-to-zoom scanned receipt viewer",
-        "Quick swipe navigation between screens"
-      ]
-    },
-    {
-      id: "mobile",
-      tag: "MOBILE COMPANION",
-      title: "Split on the Go",
-      desc: "Log cost splits in seconds directly from the taxi, ticket line, or restaurant. Attach a receipt photo to any expense and confirm settlements right from your phone.",
-      icon: Smartphone,
-      imageSrc: "/mobile.webp",
-      color: "from-pink-500 to-purple-500",
-      accent: "text-pink-400",
-      accentBg: "bg-pink-500/10",
-      glowColor: "rgba(56, 189, 248, 0.18)",
-      features: [
-        "Attach receipt photos to any expense",
-        "QR & link invites to join a group instantly",
-        "Two-party settlement requests, confirmed in-app"
-      ]
-    },
-  ];
-
-  // Sliding animation variants for AnimatePresence
-  // entering from the left (-150%) and exiting to the right (150%)
-  const slideVariants = {
-    enter: {
-      x: "-120%",
-      opacity: 0,
-      scale: 0.9,
-    },
-    center: {
-      x: 0,
-      opacity: 1,
-      scale: 1,
-      transition: {
-        x: { type: "spring", stiffness: 220, damping: 24 },
-        opacity: { duration: 0.4 },
-        scale: { duration: 0.4 },
-      },
-    },
-    exit: {
-      x: "120%",
-      opacity: 0,
-      scale: 0.9,
-      transition: {
-        x: { type: "spring", stiffness: 220, damping: 24 },
-        opacity: { duration: 0.4 },
-        scale: { duration: 0.4 },
-      },
-    },
-  };
-
   return (
-    <section
-      ref={containerRef}
-      id="device-slide-showcase"
-      className="relative h-[300vh] bg-[#030303] text-white z-20"
-    >
-      {/* Background graphic nodes */}
-      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-indigo-900/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-rose-900/5 rounded-full blur-[120px]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.002)_1px,transparent_1px),linear-gradient(to_right,rgba(255,255,255,0.002)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20" />
+    <section ref={containerRef} id="device-slide-showcase" className="relative z-20 h-[560vh] bg-[#030303] text-white">
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(14,116,144,0.06),transparent_58%)]" />
       </div>
 
-      {/* Sticky screen container */}
-      <div className="sticky top-0 h-[100svh] w-full flex items-center overflow-hidden z-10 px-6 sm:px-12 md:px-16 lg:px-24">
-        
-        <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 items-center gap-6 sm:gap-12 lg:gap-16 relative z-10">
-          
-          {/* LEFT COLUMN: Features details (Width: 5 cols) */}
-          <div className="col-span-1 lg:col-span-5 flex flex-col justify-center text-left relative min-h-[230px] sm:min-h-[400px]">
-            
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeIndex}
-                initial={{ opacity: 0, x: -30, filter: "blur(6px)" }}
-                animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, x: 30, filter: "blur(6px)" }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="flex flex-col gap-4"
-              >
-                <div className="flex items-center gap-2">
-                  <span className={`text-[10px] font-extrabold uppercase tracking-[0.2em] border px-2.5 py-1 rounded-md ${slides[activeIndex].accent} border-white/5 bg-white/[0.02] inline-flex items-center gap-1.5`}>
-                    <Sparkles className="w-3 h-3 animate-pulse" />
-                    {slides[activeIndex].tag}
-                  </span>
-                </div>
-
-                <h3 className="font-serif-premium font-normal text-white text-3xl sm:text-4xl md:text-5xl tracking-tight leading-[1.1]">
-                  {slides[activeIndex].title}
-                </h3>
-
-                <p className="text-white/50 text-xs sm:text-sm md:text-base leading-relaxed font-medium max-w-md mt-2">
-                  {slides[activeIndex].desc}
-                </p>
-
-                {/* Feature Bullet Points */}
-                <ul className="mt-2 space-y-2.5">
-                  {slides[activeIndex].features.map((feature, idx) => (
-                    <motion.li
-                      key={idx}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.1 + 0.1 }}
-                      className="flex items-start gap-2 text-xs sm:text-sm text-white/70"
-                    >
-                      <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${slides[activeIndex].accent}`} />
-                      <span>{feature}</span>
-                    </motion.li>
-                  ))}
-                </ul>
-
-                <div className="mt-4">
-                  <Link
-                    href={`/demo/${slides[activeIndex].id}`}
-                    className={`px-5 py-2.5 rounded-full text-xs font-semibold text-white border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 transition-all duration-300 flex items-center gap-2 shadow-lg cursor-pointer inline-flex`}
-                  >
-                    View Live Demo
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-          </div>
-
-          {/* RIGHT COLUMN: Slide-out device container (Width: 7 cols) */}
-          <div className="col-span-1 lg:col-span-7 flex justify-center items-center h-[240px] sm:h-[420px] lg:h-full relative">
-            
-            {/* Visual glow frame element underneath mockups */}
-            <div
-              className="absolute w-80 h-80 sm:w-[28rem] sm:h-[28rem] rounded-full blur-3xl transition-colors duration-500 pointer-events-none"
-              style={{
-                backgroundColor: slides[activeIndex].glowColor,
-                filter: "blur(100px)",
-                opacity: 0.65,
-              }}
-            />
-
-            {/* Slides container wrapper */}
-            <div className="w-full h-full relative overflow-hidden flex items-center justify-center">
-              
-              <AnimatePresence mode="popLayout" custom={1}>
-                <motion.div
-                  key={activeIndex}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  className="absolute w-full h-full flex items-center justify-center select-none"
-                >
-                  {/* Laptop rendering */}
-                  {activeIndex === 0 && (
-                    <div className="w-[105%] sm:w-[110%] md:w-[118%] lg:w-[128%] max-w-[900px] drop-shadow-[0_30px_70px_rgba(0,0,0,0.9)]">
-                      <img
-                        src="/laptop.webp"
-                        className="w-full h-auto object-contain block [filter:brightness(1.03)_contrast(1.08)_saturate(1.12)] [mask-image:radial-gradient(ellipse_70%_68%_at_center,#000_35%,rgba(0,0,0,0.4)_70%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_70%_68%_at_center,#000_35%,rgba(0,0,0,0.4)_70%,transparent_100%)]"
-                        alt="Laptop Dashboard Layout"
-                      />
-                    </div>
-                  )}
-
-                  {/* Tablet rendering */}
-                  {activeIndex === 1 && (
-                    <div className="w-[82%] sm:w-[82%] md:w-[85%] max-w-[560px] drop-shadow-[0_30px_70px_rgba(0,0,0,0.9)]">
-                      <img
-                        src="/tablet.webp"
-                        className="w-full h-auto object-contain block [filter:brightness(1.03)_contrast(1.08)_saturate(1.12)] [mask-image:radial-gradient(ellipse_72%_70%_at_center,#000_35%,rgba(0,0,0,0.4)_70%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_72%_70%_at_center,#000_35%,rgba(0,0,0,0.4)_70%,transparent_100%)]"
-                        alt="Tablet Lounge Audit"
-                      />
-                    </div>
-                  )}
-
-                  {/* Mobile rendering */}
-                  {activeIndex === 2 && (
-                    <div className="w-[88%] sm:w-[78%] md:w-[74%] max-w-[500px] drop-shadow-[0_30px_70px_rgba(0,0,0,0.9)]">
-                      <img
-                        src="/mobile.webp"
-                        className="w-full h-auto object-contain block [filter:brightness(1.03)_contrast(1.08)_saturate(1.12)] [mask-image:radial-gradient(ellipse_74%_72%_at_center,#000_38%,rgba(0,0,0,0.4)_72%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_74%_72%_at_center,#000_38%,rgba(0,0,0,0.4)_72%,transparent_100%)]"
-                        alt="Mobile Companion App"
-                      />
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-
+      <div className="sticky top-0 z-10 flex h-[100svh] w-full items-center overflow-hidden px-5 sm:px-10 md:px-16 lg:px-24">
+        <motion.div style={{ opacity: introOpacity }} className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-5 sm:px-10 md:px-16">
+          <div className="w-full max-w-6xl">
+            <div className="mb-9 text-center sm:mb-12">
+              <p className="mb-3 text-xs tracking-[0.14em] text-cyan-300/75">Made for every screen</p>
+              <h2 className="font-serif-premium text-4xl font-normal tracking-tight text-white sm:text-5xl md:text-6xl">Your split, wherever you are.</h2>
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-white/45 sm:text-base">Three focused experiences. One continuously synced group ledger.</p>
             </div>
-
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-5">
+              {SLIDES.map((slide, index) => (
+                <ArrivalCard key={slide.id} slide={slide} progress={scrollYProgress} index={index} reduceMotion={reduceMotion} />
+              ))}
+            </div>
+            <p className="mt-9 text-center text-xs text-white/28">Keep scrolling — the three views come together</p>
           </div>
+        </motion.div>
 
-        </div>
+        <motion.div style={{ opacity: mainOpacity }} className="relative z-10 mx-auto h-[92svh] w-full max-w-6xl lg:h-[min(720px,88svh)]">
+          <div className="absolute inset-0 overflow-visible [contain:paint]">
+            <SolidPage slide={SLIDES[0]} index={0} progress={scrollYProgress} range={[0.23, 0.28, 0.49, 0.505]} active={activeIndex === 0} />
+            {transitionIndex === 0 && (
+              <GlassTransition slide={SLIDES[0]} index={0} progress={scrollYProgress} start={0.495} end={0.585} reduceMotion={reduceMotion} />
+            )}
+
+            <SolidPage slide={SLIDES[1]} index={1} progress={scrollYProgress} range={[0.545, 0.6, 0.73, 0.745]} active={activeIndex === 1} />
+            {transitionIndex === 1 && (
+              <GlassTransition slide={SLIDES[1]} index={1} progress={scrollYProgress} start={0.735} end={0.825} reduceMotion={reduceMotion} />
+            )}
+
+            <SolidPage slide={SLIDES[2]} index={2} progress={scrollYProgress} range={[0.785, 0.84, 0.96, 1]} active={activeIndex === 2} />
+          </div>
+        </motion.div>
       </div>
     </section>
   );

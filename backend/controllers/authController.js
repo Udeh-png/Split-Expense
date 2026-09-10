@@ -106,20 +106,39 @@ export const sendSignupOtp = async (req, res) => {
       return res.status(400).json({ field: "email", message: "An account with this email already exists. Please sign in instead." });
 
     try {
-      await admin.auth().getUserByEmail(normalizedEmail);
-      // If the above didn't throw, the email exists in Firebase.
-      return res.status(400).json({ field: "email", message: "An account with this email already exists. Please sign in instead." });
-    } catch (fbErr) {
-      // auth/user-not-found is the expected happy path; anything else is a real error.
-      if (fbErr.code !== "auth/user-not-found") {
-        console.error("Firebase getUserByEmail error:", fbErr.message);
+      const firebaseUser = await admin.auth().getUserByEmail(normalizedEmail);
+      // Older app builds created a Firebase user before contacting this backend.
+      // When that request was rejected for an unverified email, users were left
+      // with an orphaned Firebase-only account and could neither sign in nor
+      // retry signup. It is safe to remove that incomplete, unverified record
+      // because the Mongo lookup above confirms no SplitEase account exists.
+      if (!firebaseUser.emailVerified) {
+        await admin.auth().deleteUser(firebaseUser.uid);
+      } else {
+        return res.status(400).json({ field: "email", message: "An account with this email already exists. Please sign in instead." });
       }
+    } catch (fbErr) {
+      // auth/user-not-found is the expected happy path; lookup or cleanup
+      // failures must stop signup instead of sending a code that can never be
+      // exchanged for an account.
+      if (fbErr.code !== "auth/user-not-found") throw fbErr;
     }
 
     // Throttle resend: block if a code was sent < 60s ago.
     const existingOtp = await SignupOtp.findOne({ email: normalizedEmail });
     if (existingOtp && Date.now() - existingOtp.lastSentAt.getTime() < 60 * 1000) {
-      return res.status(429).json({ message: "A code was just sent. Please wait a moment before requesting another." });
+      const retryAfterSeconds = Math.max(
+        1,
+        Math.ceil((60 * 1000 - (Date.now() - existingOtp.lastSentAt.getTime())) / 1000)
+      );
+      // A usable code already exists, so this is a successful/idempotent
+      // signup request. Returning success lets clients continue to the code
+      // screen instead of incorrectly presenting a registration failure.
+      return res.status(200).json({
+        message: "Use the verification code already sent to your email.",
+        codePending: true,
+        retryAfterSeconds,
+      });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();

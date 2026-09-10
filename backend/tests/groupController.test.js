@@ -95,6 +95,21 @@ describe("createGroup", () => {
 
     expect(res.statusCode).toBe(401);
   });
+
+  test("returns a clear conflict when the creator reuses a group name", async () => {
+    const duplicateError = Object.assign(new Error("E11000 duplicate key"), { code: 11000 });
+    const createSpy = jest.spyOn(fakeGroupModel, "create").mockRejectedValueOnce(duplicateError);
+    const req = makeReq({ user: { id: oid(), name: "Alice" }, body: { name: "Home Expenses" } });
+    const res = makeRes();
+
+    await createGroup(req, res);
+
+    expect(res.statusCode).toBe(409);
+    expect(res.body.message).toBe(
+      "You already have a group with this name. Please choose another name."
+    );
+    createSpy.mockRestore();
+  });
 });
 
 describe("removeMember", () => {

@@ -53,6 +53,11 @@ export const createGroup = async (req, res) => {
     );
     res.status(201).json(populated);
   } catch (err) {
+    if (err?.code === 11000) {
+      return res.status(409).json({
+        message: "You already have a group with this name. Please choose another name.",
+      });
+    }
     res.status(500).json({ message: err.message });
   }
 };

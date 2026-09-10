@@ -23,7 +23,15 @@ function TimelineDot({ scrollYProgress, index, total, color }) {
                    color.includes('amber') ? '#fbbf24' : '#34d399';
 
   return (
-    <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-4 h-4 z-10 pointer-events-none items-center justify-center">
+    <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-8 h-4 z-10 pointer-events-none items-center justify-center">
+      {/* Station platform indicator cross-tie on both sides (dono side) */}
+      <motion.div
+        style={{
+          scaleX: scale,
+          opacity: glowOpacity,
+        }}
+        className="absolute left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent"
+      />
       {/* Outer glowing ring */}
       <motion.div
         style={{
@@ -32,17 +40,18 @@ function TimelineDot({ scrollYProgress, index, total, color }) {
           borderColor: dotColor,
           boxShadow: `0 0 12px 2px ${dotColor}55, 0 0 4px ${dotColor}`,
         }}
-        className="absolute inset-0 rounded-full border bg-[#030303]"
-      />
-      {/* Inner filled dot */}
-      <motion.div
-        style={{
-          opacity: innerDotOpacity,
-          backgroundColor: dotColor,
-          scale,
-        }}
-        className="w-1.5 h-1.5 rounded-full relative z-10"
-      />
+        className="w-4 h-4 rounded-full border bg-[#030303] relative z-10 flex items-center justify-center"
+      >
+        {/* Inner filled dot */}
+        <motion.div
+          style={{
+            opacity: innerDotOpacity,
+            backgroundColor: dotColor,
+            scale,
+          }}
+          className="w-1.5 h-1.5 rounded-full"
+        />
+      </motion.div>
     </div>
   );
 }
@@ -88,6 +97,227 @@ function TrackTrainIcon({ direction }) {
         className={direction === "down" ? "drop-shadow-[0_0_6px_#22d3ee]" : ""}
       />
     </svg>
+  );
+}
+
+function RailwayBufferStop({ position = "bottom" }) {
+  const isTop = position === "top";
+
+  return (
+    <div
+      className={`pointer-events-none absolute left-1/2 -translate-x-1/2 z-10 w-16 overflow-visible ${
+        isTop ? "-top-[160px]" : "-bottom-[96px]"
+      }`}
+    >
+      <svg
+        viewBox="0 0 64 68"
+        className="w-16 h-[68px] overflow-visible drop-shadow-[0_8px_24px_rgba(0,0,0,0.85)]"
+        style={{
+          transform: isTop ? "scaleY(-1)" : undefined,
+          transformOrigin: "center center",
+        }}
+      >
+        <defs>
+          {/* 45-degree classic railway hazard safety stripes */}
+          <pattern
+            id={`hazard-stripes-${position}`}
+            width="8"
+            height="8"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+          >
+            <rect width="8" height="8" fill="#09090b" />
+            <rect x="0" y="0" width="4" height="8" fill="#f59e0b" />
+            <line x1="0" y1="0" x2="0" y2="8" stroke="#fde047" strokeWidth="0.6" />
+          </pattern>
+
+          {/* Metallic hydraulic cylinder gradient */}
+          <linearGradient id={`steel-cylinder-${position}`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#1e293b" />
+            <stop offset="35%" stopColor="#64748b" />
+            <stop offset="65%" stopColor="#cbd5e1" />
+            <stop offset="100%" stopColor="#334155" />
+          </linearGradient>
+
+          {/* Luminous Red Danger Lamp Glow filter */}
+          <filter id={`red-beacon-glow-${position}`} x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.4" result="glow" />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* --- TRACK EXTENSION & BASE SLEEPERS --- */}
+        {/* Sleeper 1 (approach tie) */}
+        <rect x="16" y="8" width="32" height="4.5" rx="1" fill="#18181b" stroke="#27272a" strokeWidth="0.7" />
+        {/* Sleeper 2 (under buffer impact zone) */}
+        <rect x="14" y="20" width="36" height="5" rx="1.2" fill="#18181b" stroke="#3f3f46" strokeWidth="0.8" />
+        {/* Sleeper 3 (terminal ground tie) */}
+        <rect x="10" y="54" width="44" height="6" rx="1.5" fill="#18181b" stroke="#52525b" strokeWidth="0.8" />
+
+        {/* Extended Steel Rails (Gauge: Left=26, Right=38 matching timeline track gauge) */}
+        <line x1="26" y1="0" x2="26" y2="54" stroke="rgba(207,250,254,0.4)" strokeWidth="2.5" strokeLinecap="square" />
+        <line x1="38" y1="0" x2="38" y2="54" stroke="rgba(207,250,254,0.4)" strokeWidth="2.5" strokeLinecap="square" />
+        <line x1="26" y1="0" x2="26" y2="54" stroke="#000" strokeWidth="0.9" opacity="0.8" />
+        <line x1="38" y1="0" x2="38" y2="54" stroke="#000" strokeWidth="0.9" opacity="0.8" />
+
+        {/* --- WHEEL CHOCKS (FRICTION RAIL STOPS) --- */}
+        {/* Left rail chock */}
+        <g>
+          <rect x="23" y="7" width="6" height="7" rx="1.2" fill="#334155" stroke="#64748b" strokeWidth="0.8" />
+          <path d="M23 7 L29 11 L29 14 L23 14 Z" fill="#1e293b" opacity="0.6" />
+          <circle cx="26" cy="9" r="0.85" fill="#f8fafc" />
+          <circle cx="26" cy="12" r="0.85" fill="#f8fafc" />
+        </g>
+        {/* Right rail chock */}
+        <g>
+          <rect x="35" y="7" width="6" height="7" rx="1.2" fill="#334155" stroke="#64748b" strokeWidth="0.8" />
+          <path d="M35 7 L41 11 L41 14 L35 14 Z" fill="#1e293b" opacity="0.6" />
+          <circle cx="38" cy="9" r="0.85" fill="#f8fafc" />
+          <circle cx="38" cy="12" r="0.85" fill="#f8fafc" />
+        </g>
+
+        {/* --- HEAVY STEEL A-FRAME BRACING TRUSS --- */}
+        {/* Outer diagonal heavy support girders */}
+        <path
+          d="M17 35 L25 54 M47 35 L39 54"
+          stroke="#334155"
+          strokeWidth="3.2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M17 35 L25 54 M47 35 L39 54"
+          stroke="#64748b"
+          strokeWidth="1"
+          strokeLinecap="round"
+        />
+        {/* Inner diagonal cross-lattice bracing ('X' brace) */}
+        <line x1="20" y1="36" x2="44" y2="52" stroke="#475569" strokeWidth="1.6" />
+        <line x1="44" y1="36" x2="20" y2="52" stroke="#475569" strokeWidth="1.6" />
+        {/* Center Gusset Plate with Rivets */}
+        <rect
+          x="28.5"
+          y="40.5"
+          width="7"
+          height="7"
+          rx="1"
+          transform="rotate(45 32 44)"
+          fill="#1e293b"
+          stroke="#64748b"
+          strokeWidth="0.8"
+        />
+        <circle cx="32" cy="44" r="1.1" fill="#e2e8f0" />
+
+        {/* Anchor Baseplates bolted to rail terminations */}
+        <rect x="22" y="52" width="8" height="4.5" rx="1" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
+        <circle cx="24" cy="54" r="0.75" fill="#e2e8f0" />
+        <circle cx="28" cy="54" r="0.75" fill="#e2e8f0" />
+        <rect x="34" y="52" width="8" height="4.5" rx="1" fill="#1e293b" stroke="#475569" strokeWidth="0.8" />
+        <circle cx="36" cy="54" r="0.75" fill="#e2e8f0" />
+        <circle cx="40" cy="54" r="0.75" fill="#e2e8f0" />
+
+        {/* Rail End Safety Horns (curled terminal tips) */}
+        <path d="M26 54 C26 57 24 59 21 59" stroke="rgba(207,250,254,0.45)" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+        <path d="M38 54 C38 57 40 59 43 59" stroke="rgba(207,250,254,0.45)" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+
+        {/* --- DUAL HYDRAULIC BUFFER CYLINDERS (DONO SIDE) --- */}
+        {/* Left hydraulic piston shaft */}
+        <rect
+          x="23.5"
+          y="16"
+          width="5"
+          height="9"
+          rx="1.2"
+          fill={`url(#steel-cylinder-${position})`}
+          stroke="#475569"
+          strokeWidth="0.6"
+        />
+        {/* Right hydraulic piston shaft */}
+        <rect
+          x="35.5"
+          y="16"
+          width="5"
+          height="9"
+          rx="1.2"
+          fill={`url(#steel-cylinder-${position})`}
+          stroke="#475569"
+          strokeWidth="0.6"
+        />
+
+        {/* Left Impact Buffer Head (facing train) */}
+        <g filter="drop-shadow(0 0 6px rgba(34,211,238,0.3))">
+          <ellipse cx="26" cy="16" rx="7" ry="3.8" fill="#1e293b" stroke="#94a3b8" strokeWidth="1.2" />
+          <ellipse cx="26" cy="16" rx="4.8" ry="2.2" fill="#0f172a" stroke="#475569" strokeWidth="0.6" />
+          <circle cx="26" cy="16" r="1.2" fill="#f8fafc" />
+        </g>
+
+        {/* Right Impact Buffer Head (facing train) */}
+        <g filter="drop-shadow(0 0 6px rgba(34,211,238,0.3))">
+          <ellipse cx="38" cy="16" rx="7" ry="3.8" fill="#1e293b" stroke="#94a3b8" strokeWidth="1.2" />
+          <ellipse cx="38" cy="16" rx="4.8" ry="2.2" fill="#0f172a" stroke="#475569" strokeWidth="0.6" />
+          <circle cx="38" cy="16" r="1.2" fill="#f8fafc" />
+        </g>
+
+        {/* --- HEAVY BUFFER BEAM (HEADSTOCK) --- */}
+        {/* Shadow under beam */}
+        <rect x="7" y="24" width="50" height="12" rx="2.5" fill="#000" opacity="0.6" />
+        {/* Main steel beam body */}
+        <rect
+          x="8"
+          y="23"
+          width="48"
+          height="12"
+          rx="2"
+          fill="#0f172a"
+          stroke="#64748b"
+          strokeWidth="1"
+        />
+        {/* Hazard safety stripes face plate */}
+        <rect
+          x="9.5"
+          y="24.5"
+          width="45"
+          height="9"
+          rx="1"
+          fill={`url(#hazard-stripes-${position})`}
+          stroke="#18181b"
+          strokeWidth="0.5"
+        />
+        {/* Steel beam edge rim highlight */}
+        <line x1="9" y1="23.5" x2="55" y2="23.5" stroke="#94a3b8" strokeWidth="0.8" strokeLinecap="round" />
+        <line x1="9" y1="34.5" x2="55" y2="34.5" stroke="#334155" strokeWidth="0.8" strokeLinecap="round" />
+
+        {/* Left End-cap & Rivets */}
+        <rect x="8" y="23" width="3.5" height="12" rx="1" fill="#334155" stroke="#475569" strokeWidth="0.6" />
+        <circle cx="9.8" cy="25.5" r="0.65" fill="#e2e8f0" />
+        <circle cx="9.8" cy="32.5" r="0.65" fill="#e2e8f0" />
+        {/* Right End-cap & Rivets */}
+        <rect x="52.5" y="23" width="3.5" height="12" rx="1" fill="#334155" stroke="#475569" strokeWidth="0.6" />
+        <circle cx="54.2" cy="25.5" r="0.65" fill="#e2e8f0" />
+        <circle cx="54.2" cy="32.5" r="0.65" fill="#e2e8f0" />
+
+        {/* --- CENTRAL RED DANGER STOP SIGNAL LANTERN --- */}
+        {/* Outer dark bezel & reflective silver ring */}
+        <circle cx="32" cy="29" r="6" fill="#030712" stroke="#e2e8f0" strokeWidth="0.9" />
+        {/* Red beacon glow backdrop */}
+        <circle cx="32" cy="29" r="9" fill="#ef4444" opacity="0.35" filter="blur(3px)" />
+        {/* Red lens core with luminous beacon filter */}
+        <circle
+          cx="32"
+          cy="29"
+          r="4.2"
+          fill="#ef4444"
+          filter={`url(#red-beacon-glow-${position})`}
+        />
+        {/* Center bright core */}
+        <circle cx="32" cy="29" r="2.2" fill="#ff6b6b" />
+        {/* Specular highlight glint */}
+        <ellipse cx="30.8" cy="27.8" rx="1.2" ry="0.7" fill="#ffffff" opacity="0.95" />
+      </svg>
+    </div>
   );
 }
 
@@ -249,20 +479,26 @@ export default function FeaturesSection() {
             }}
           >
 
-            {/* Inactive railway — twin rails with evenly spaced sleepers. */}
-            <svg className="absolute inset-0 w-full h-full overflow-visible">
-              <defs>
-                <pattern id="railway-sleepers" width="28" height="15" patternUnits="userSpaceOnUse">
-                  <line x1="3" y1="7.5" x2="25" y2="7.5" stroke="rgba(255,255,255,.2)" strokeWidth="2.2" strokeLinecap="round" />
-                  <line x1="5" y1="9.5" x2="23" y2="9.5" stroke="rgba(0,0,0,.7)" strokeWidth="1" strokeLinecap="round" />
-                </pattern>
-              </defs>
-              <rect width="28" height="100%" fill="url(#railway-sleepers)" />
-              <line x1="8" y1="0" x2="8" y2="100%" stroke="rgba(207,250,254,.35)" strokeWidth="2" />
-              <line x1="20" y1="0" x2="20" y2="100%" stroke="rgba(207,250,254,.35)" strokeWidth="2" />
-              <line x1="9.5" y1="0" x2="9.5" y2="100%" stroke="rgba(0,0,0,.75)" strokeWidth="1" />
-              <line x1="18.5" y1="0" x2="18.5" y2="100%" stroke="rgba(0,0,0,.75)" strokeWidth="1" />
-            </svg>
+            {/* Authentic Railway Buffer Stops on both ends (dono side) */}
+            <RailwayBufferStop position="top" />
+            <RailwayBufferStop position="bottom" />
+
+            {/* Inactive railway — twin rails with evenly spaced sleepers extending continuously through entire route */}
+            <div className="absolute -top-[160px] -bottom-[96px] left-0 w-full overflow-visible">
+              <svg className="w-full h-full overflow-visible">
+                <defs>
+                  <pattern id="railway-sleepers" width="28" height="15" patternUnits="userSpaceOnUse">
+                    <line x1="3" y1="7.5" x2="25" y2="7.5" stroke="rgba(255,255,255,.2)" strokeWidth="2.2" strokeLinecap="round" />
+                    <line x1="5" y1="9.5" x2="23" y2="9.5" stroke="rgba(0,0,0,.7)" strokeWidth="1" strokeLinecap="round" />
+                  </pattern>
+                </defs>
+                <rect width="28" height="100%" fill="url(#railway-sleepers)" />
+                <line x1="8" y1="0" x2="8" y2="100%" stroke="rgba(207,250,254,.35)" strokeWidth="2" />
+                <line x1="20" y1="0" x2="20" y2="100%" stroke="rgba(207,250,254,.35)" strokeWidth="2" />
+                <line x1="9.5" y1="0" x2="9.5" y2="100%" stroke="rgba(0,0,0,.75)" strokeWidth="1" />
+                <line x1="18.5" y1="0" x2="18.5" y2="100%" stroke="rgba(0,0,0,.75)" strokeWidth="1" />
+              </svg>
+            </div>
 
             {/* Active Glowing Gradient Line — revealed from top as scroll progresses */}
             <motion.div

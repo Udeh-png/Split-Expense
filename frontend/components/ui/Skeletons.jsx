@@ -1,4 +1,4 @@
-export const SkeletonUi = ({ className, isChild, children }) => (
+export const SkeletonUi = ({ className = "", isChild = false, children }) => (
   <div
     className={`${isChild ? "bg-muted/80" : "bg-card"} ${!isChild && "animate-pulse"} rounded ${className}`}
   >

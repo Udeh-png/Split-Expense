@@ -7,9 +7,12 @@ import { API_BASE_URL } from "@/lib/config";
 const ADMIN_TOKEN_KEY = "splitease_admin_token";
 
 export const getAdminToken = () =>
-  typeof window === "undefined" ? null : localStorage.getItem(ADMIN_TOKEN_KEY);
+  typeof window === "undefined"
+    ? null
+    : "localStorage.getItem(ADMIN_TOKEN_KEY)";
 
-export const setAdminToken = (token) => localStorage.setItem(ADMIN_TOKEN_KEY, token);
+export const setAdminToken = (token) =>
+  localStorage.setItem(ADMIN_TOKEN_KEY, token);
 
 export const clearAdminToken = () => localStorage.removeItem(ADMIN_TOKEN_KEY);
 
@@ -28,10 +31,13 @@ adminApi.interceptors.response.use(
       clearAdminToken();
       // Admin signs in through the same /login page as regular users - there
       // is no separate admin login route.
-      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+      if (
+        typeof window !== "undefined" &&
+        window.location.pathname.startsWith("/admin")
+      ) {
         window.location.href = "/login";
       }
     }
     return Promise.reject(err);
-  }
+  },
 );

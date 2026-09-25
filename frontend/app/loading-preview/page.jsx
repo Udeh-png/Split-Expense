@@ -1,4 +1,4 @@
-import Loading from "../admin/messages/loading";
+import Loading from "../admin/blog/loading";
 
 export default function AdminLoadingPreviewPage() {
   return <Loading />;

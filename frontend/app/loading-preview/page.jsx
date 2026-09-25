@@ -1,5 +1,5 @@
-import { AdminDashboardSkeleton } from "../admin/loading";
+import Loading from "../admin/messages/loading";
 
 export default function AdminLoadingPreviewPage() {
-  return <AdminDashboardSkeleton />;
+  return <Loading />;
 }
